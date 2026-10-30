@@ -26,6 +26,9 @@ body {
 a { color: inherit; }
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   height: 74px;
   padding: 0 max(6.5vw, calc((100vw - 1200px) / 2));
   display: flex;
@@ -130,6 +133,50 @@ fieldset.field legend { padding: 0; margin-bottom: 10px; }
 .documents { margin-top: 5px; padding: 15px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid #dde7dd; border-radius: 8px; background: rgba(255,255,255,.68); }
 .documents-icon { color: var(--green); font-size: 18px; }
 
+.help-section { margin: 0 0 70px; padding: 38px 0 0; border-top: 1px solid #e6eae3; }
+.help-heading { margin-bottom: 22px; }
+.help-heading h2 { margin: 0 0 8px; font-size: 23px; letter-spacing: -.05em; }
+.help-heading > p:last-child { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.help-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.help-card { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.help-number { display: inline-block; margin-bottom: 15px; color: #b88255; font-size: 10px; font-weight: 700; letter-spacing: .1em; }
+.help-card h3 { margin: 0 0 9px; font-size: 13px; letter-spacing: -.03em; }
+.help-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.8; word-break: keep-all; }
+.help-more { margin: 18px 0 0; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.help-more a, .content-page a:not(.brand):not(.back-to-calculator) { color: var(--green-dark); text-underline-offset: 3px; }
+
+.content-page { max-width: 860px; min-height: 55vh; margin: 0 auto; padding: 72px 32px 80px; }
+.content-page > .step-label { margin-bottom: 14px; }
+.content-page > h1 { margin: 0 0 20px; font-size: clamp(32px, 5vw, 46px); line-height: 1.35; letter-spacing: -.06em; }
+.content-page > h1 span { color: var(--green); }
+.content-lead { max-width: 720px; margin: 0 0 30px; color: #66746c; font-size: 15px; line-height: 1.9; word-break: keep-all; }
+.prose-section { margin: 30px 0; padding: 26px 28px; border: 1px solid var(--line); border-radius: 11px; background: #fff; }
+.prose-section h2 { margin: 0 0 14px; font-size: 18px; letter-spacing: -.04em; }
+.prose-section h3 { font-size: 14px; }
+.prose-section p, .prose-section li { color: #5f6e65; font-size: 13px; line-height: 1.9; word-break: keep-all; }
+.prose-section p:last-child { margin-bottom: 0; }
+.formula-card { margin: 18px 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 7px; border-left: 3px solid var(--green); border-radius: 5px; background: #f1f6f1; }
+.formula-card strong { color: var(--green-dark); font-size: 13px; }
+.formula-card span { color: #5f6e65; font-size: 12px; line-height: 1.7; }
+.table-wrap { width: 100%; margin: 18px 0; overflow-x: auto; }
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.7; }
+.table-wrap th, .table-wrap td { padding: 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+.table-wrap thead th { color: var(--green-dark); background: #f1f6f1; }
+.table-wrap tbody th { min-width: 130px; }
+.important-note { padding: 13px 15px; border-radius: 7px; background: #fff7ec; }
+.guide-ordered-list { padding-left: 22px; }
+.guide-ordered-list li { margin: 0 0 10px; }
+.faq-item { padding: 15px 0; border-top: 1px solid var(--line); }
+.faq-item:last-child { padding-bottom: 0; }
+.faq-item summary { color: var(--ink); font-size: 13px; font-weight: 700; cursor: pointer; }
+.faq-item p { padding: 10px 0 0; }
+.plain-list { padding-left: 20px; }
+.plain-list li { margin-bottom: 8px; }
+.contact-card { background: #f1f6f1; }
+.policy-date, .content-updated { color: #8a958e; font-size: 11px; }
+.back-to-calculator { display: inline-flex; gap: 10px; margin-top: 4px; padding: 13px 17px; border-radius: 7px; color: white; background: var(--green); font-size: 12px; font-weight: 700; text-decoration: none; }
+.back-to-calculator span { color: #d7ecdf; }
+
 footer { padding: 25px max(6.5vw, calc((100vw - 1200px) / 2)); color: #8a958e; background: #fff; font-size: 10px; }
 footer p { margin: 0 0 8px; }
 footer p:first-child { color: #59665f; font-weight: 700; }
@@ -143,9 +190,11 @@ footer p span { padding: 0 4px; color: #bac3bc; }
   .hero { padding-top: 58px; }
   .hero-note { position: static; width: fit-content; margin-top: 22px; }
   .calculator-layout { grid-template-columns: 1fr; }
+  .help-grid { grid-template-columns: 1fr; }
   .result-card { min-height: 330px; }
   .empty-result { min-height: 255px; }
   .guide-section { grid-template-columns: 1fr; gap: 28px; margin-top: 55px; padding: 30px; }
+  .content-page { padding-top: 55px; }
 }
 
 @media (max-width: 520px) {
@@ -165,5 +214,26 @@ footer p span { padding: 0 4px; color: #bac3bc; }
   .radio-card small { font-size: 10px; }
   .result-card { padding: 22px 19px; }
   .guide-section { padding: 25px 20px; }
+  .guide-section, .calculator-card, .result-card, .prose-section { border-radius: 10px; }
+  .guide-section .steps-list li { grid-template-columns: 34px 1fr; gap: 9px; }
+  .help-section { margin-bottom: 48px; padding-top: 28px; }
+  .help-card { padding: 18px; }
+  .content-page { padding: 42px 18px 54px; }
+  .content-page > h1 { font-size: 31px; }
+  .content-lead { font-size: 13px; }
+  .prose-section { margin: 18px 0; padding: 20px 17px; }
+  .prose-section h2 { font-size: 16px; }
+  .prose-section p, .prose-section li { font-size: 12px; }
+  .table-wrap table { min-width: 600px; }
+  .formula-card { padding: 15px; }
+  .footer-links { flex-wrap: wrap; row-gap: 10px; }
   footer { padding: 24px 20px; }
+}
+
+@media (max-width: 360px) {
+  .site-header { padding-right: 14px; padding-left: 14px; }
+  .brand { gap: 7px; font-size: 14px; }
+  .header-nav { gap: 10px; }
+  .header-link { font-size: 10px; }
+  main { padding-right: 14px; padding-left: 14px; }
 }
