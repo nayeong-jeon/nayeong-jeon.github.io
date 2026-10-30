@@ -35,8 +35,12 @@ a { color: inherit; }
   border-bottom: 1px solid rgba(38, 51, 46, .06);
 }
 
-.brand { display: inline-flex; gap: 10px; align-items: center; text-decoration: none; font-size: 15px; font-weight: 800; letter-spacing: -.04em; }
-.brand-mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px 9px 9px 2px; color: white; background: var(--green); font-size: 13px; }
+.brand { display: inline-flex; gap: 9px; align-items: center; text-decoration: none; font-size: 15px; font-weight: 800; letter-spacing: -.04em; }
+.brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #f1dfca; border-radius: 50%; background: #fff7ec; box-shadow: 0 2px 6px rgba(80, 68, 46, .06); }
+.brand-mark svg { width: 29px; height: 29px; overflow: visible; }
+.brand-heart { fill: #e58b78; stroke: #b96759; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.15; }
+.brand-leaf { fill: #83a982; stroke: #567b60; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.4; }
+.brand-stem { fill: none; stroke: #fff7ec; stroke-linecap: round; stroke-width: 1.4; }
 .header-nav { display: flex; align-items: center; gap: 24px; }
 .header-link { font-size: 13px; font-weight: 600; text-decoration: none; }
 .header-link span, .official-link span { padding-left: 4px; color: var(--green); }
