@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f7f3">
+    <meta name="description" content="달콩맘의 육아휴직 급여 계산기. 대한민국 육아휴직 급여를 월별로 예상하고 신청 절차와 준비 서류를 확인하세요.">
+    <title>달콩맘 | 육아휴직 급여 계산기</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="첫 화면">
+        <span class="brand-mark" aria-hidden="true">ㅁ</span>
+        <span>달콩맘</span>
+      </a>
+      <nav class="header-nav" aria-label="사이트 메뉴">
+        <a class="header-link" href="#guide">신청 가이드 <span aria-hidden="true">↗</span></a>
+        <a class="header-link instagram-link" href="https://www.instagram.com/dacong_mommy/" target="_blank" rel="noopener noreferrer">Instagram <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> 부모의 시간을 응원합니다</p>
+        <h1>우리 가족의<br><span>육아휴직 급여</span>를 알아봐요</h1>
+        <p class="hero-copy">휴직을 계획할 때도, 이미 사용 중일 때도<br class="desktop-break"> 월별 예상 금액과 신청 방법을 한눈에 확인할 수 있어요.</p>
+        <div class="hero-note"><span aria-hidden="true">✳</span> 계산 결과는 입력한 정보를 바탕으로 한 예상액이에요.</div>
+      </section>
+
+      <section class="calculator-layout" aria-label="육아휴직 급여 계산">
+        <form class="calculator-card" id="calculator-form">
+          <div class="section-heading">
+            <div>
+              <p class="step-label">STEP 01</p>
+              <h2>휴직 정보를 입력해 주세요</h2>
+            </div>
+            <span class="required-label">* 필수 입력</span>
+          </div>
+
+          <label class="field">
+            <span>월 통상임금 <span class="required">*</span></span>
+            <span class="input-with-unit">
+              <input id="salary" name="salary" type="number" min="0" max="100000000" step="10000" inputmode="numeric" placeholder="예: 3,500,000" required>
+              <span>원</span>
+            </span>
+            <small>세전 월 통상임금을 입력해 주세요.</small>
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>육아휴직 시작일 <span class="required">*</span></span>
+              <input id="start-date" name="startDate" type="date" required>
+            </label>
+            <label class="field">
+              <span>전체 휴직 기간 <span class="required">*</span></span>
+              <span class="input-with-unit select-wrap">
+                <select id="duration" name="duration" required></select>
+                <span>개월</span>
+              </span>
+            </label>
+          </div>
+
+          <label class="field">
+            <span>지금 계산할 휴직 차수</span>
+            <span class="input-with-unit select-wrap">
+              <select id="current-month" name="currentMonth"></select>
+              <span>개월 차부터</span>
+            </span>
+            <small>휴직 전이라면 1개월 차, 이미 휴직 중이라면 현재 차수를 선택해 주세요.</small>
+          </label>
+
+          <fieldset class="field">
+            <legend>적용받을 제도 <span class="required">*</span></legend>
+            <div class="scheme-options">
+              <label class="scheme-option">
+                <input type="radio" name="scheme" value="standard" checked>
+                <span class="radio-card">
+                  <strong>일반 육아휴직</strong>
+                  <small>일반적인 육아휴직 급여</small>
+                </span>
+              </label>
+              <label class="scheme-option">
+                <input type="radio" name="scheme" value="sixPlusSix">
+                <span class="radio-card">
+                  <strong>6+6 부모육아휴직제</strong>
+                  <small>생후 18개월 이내 자녀</small>
+                </span>
+              </label>
+              <label class="scheme-option">
+                <input type="radio" name="scheme" value="singleParent">
+                <span class="radio-card">
+                  <strong>한부모 특례</strong>
+                  <small>한부모 근로자 해당 시</small>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="eligibility-check" id="six-plus-six-check" hidden>
+            <input id="partner-eligible" type="checkbox">
+            <span>자녀가 생후 18개월 이내일 때 부모 모두 육아휴직을 사용합니다.</span>
+          </label>
+
+          <button class="calculate-button" type="submit">예상 급여 계산하기 <span aria-hidden="true">→</span></button>
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+        </form>
+
+        <aside class="result-card" id="result" aria-live="polite">
+          <div class="result-topline">
+            <span class="result-icon" aria-hidden="true">✳</span>
+            <span>예상 계산 결과</span>
+          </div>
+          <div class="empty-result" id="empty-result">
+            <div class="empty-illustration" aria-hidden="true"><span>♡</span><i></i><b></b></div>
+            <h2>입력하면 바로 계산해 드려요</h2>
+            <p>정보를 입력하고 버튼을 누르면<br>월별 예상 급여를 확인할 수 있어요.</p>
+          </div>
+          <div class="calculated-result" id="calculated-result" hidden>
+            <p class="result-caption" id="result-caption"></p>
+            <p class="total-amount"><strong id="total-amount">0</strong><span>원</span></p>
+            <p class="result-meta" id="result-meta"></p>
+            <div class="result-notice" id="result-notice" hidden></div>
+            <div class="monthly-heading">
+              <h3>월별 예상 급여</h3>
+              <span>세전 · 월 단위 추정</span>
+            </div>
+            <div class="monthly-list" id="monthly-list"></div>
+            <p class="calculation-footnote">월 전체를 사용한다고 가정한 추정치예요. 시작·종료일, 실제 통상임금 및 자격 조건에 따라 달라질 수 있습니다.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="guide-section" id="guide">
+        <div class="guide-intro">
+          <p class="step-label">STEP 02</p>
+          <h2>신청은 이렇게<br>준비해 보세요</h2>
+          <p>회사와 고용24에서 신청할 수 있어요.<br>구체적인 자격과 제출 항목은 공식 안내를 확인해 주세요.</p>
+          <a class="official-link" href="https://www.work24.go.kr/" target="_blank" rel="noreferrer">고용24에서 확인하기 <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="guide-content">
+          <ol class="steps-list">
+            <li><span class="step-number">01</span><div><h3>회사에 육아휴직 신청</h3><p>휴직 시작 예정일과 기간을 회사에 미리 알리고, 사업주 승인 및 확인서 제출 여부를 확인하세요.</p></div></li>
+            <li><span class="step-number">02</span><div><h3>급여 신청 준비</h3><p>통상임금 확인 자료 등 필요한 서류와 고용보험 가입기간 등 자격 요건을 확인하세요.</p></div></li>
+            <li><span class="step-number">03</span><div><h3>고용24에서 급여 신청</h3><p>사업주가 육아휴직 확인서를 제출했는지 확인한 뒤, 고용24 또는 관할 고용센터에서 신청하세요.</p></div></li>
+            <li><span class="step-number">04</span><div><h3>신청 기간 확인</h3><p>급여 신청 가능 시점과 신청 기한에는 요건이 있어요. 놓치지 않도록 고용24의 최신 안내를 확인하세요.</p></div></li>
+          </ol>
+          <div class="documents">
+            <span class="documents-icon" aria-hidden="true">▤</span>
+            <div><h3>미리 확인하면 좋은 자료</h3><p>육아휴직 급여 신청서 · 사업주가 제출하는 육아휴직 확인서 · 통상임금 확인 자료(급여명세서 등)</p></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>달콩맘 <span>·</span> 대한민국 육아휴직 급여 예상 계산기</p>
+      <p>본 서비스는 참고용 예상 계산이며, 지급 여부와 최종 금액은 고용센터의 확인 결과가 우선합니다.</p>
+      <div class="footer-links">
+        <a href="https://www.work24.go.kr/" target="_blank" rel="noreferrer">고용24</a>
+        <a href="https://www.law.go.kr/법령/고용보험법" target="_blank" rel="noreferrer">고용보험법</a>
+        <a href="https://www.moel.go.kr/" target="_blank" rel="noreferrer">고용노동부</a>
+        <a href="https://www.instagram.com/dacong_mommy/" target="_blank" rel="noopener noreferrer">@dacong_mommy</a>
+      </div>
+    </footer>
+  </body>
+</html>
