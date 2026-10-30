@@ -25,6 +25,21 @@ const emptyResult = document.querySelector("#empty-result");
 const calculatedResult = document.querySelector("#calculated-result");
 const numberFormat = new Intl.NumberFormat("ko-KR");
 
+salaryInput.addEventListener("input", () => {
+  const cursor = salaryInput.selectionStart ?? salaryInput.value.length;
+  const digitsBeforeCursor = salaryInput.value.slice(0, cursor).replace(/\D/g, "").length;
+  const digits = salaryInput.value.replace(/\D/g, "");
+  salaryInput.value = digits ? numberFormat.format(Number(digits)) : "";
+
+  let nextCursor = 0;
+  let digitsSeen = 0;
+  while (nextCursor < salaryInput.value.length && digitsSeen < digitsBeforeCursor) {
+    if (/\d/.test(salaryInput.value[nextCursor])) digitsSeen += 1;
+    nextCursor += 1;
+  }
+  salaryInput.setSelectionRange(nextCursor, nextCursor);
+});
+
 function populateMonthOptions(select, first, last) {
   const previous = Number(select.value) || first;
   select.replaceChildren();
@@ -91,15 +106,15 @@ function calculate(event) {
   event.preventDefault();
   formError.hidden = true;
 
-  const salary = Number(salaryInput.value);
+  const salary = Number(salaryInput.value.replaceAll(",", ""));
   const duration = Number(durationSelect.value);
   const firstMonth = Number(currentMonthSelect.value);
   const scheme = new FormData(form).get("scheme");
   const sixPlusSixEligible = scheme === "sixPlusSix" && partnerEligibleInput.checked;
   const startDate = new Date(`${startDateInput.value}T00:00:00`);
 
-  if (!Number.isFinite(salary) || salary <= 0) {
-    showError("월 통상임금을 0보다 큰 금액으로 입력해 주세요.");
+  if (!Number.isFinite(salary) || salary <= 0 || salary > 100_000_000) {
+    showError("월 통상임금을 0원 초과, 100,000,000원 이하로 입력해 주세요.");
     salaryInput.focus();
     return;
   }
