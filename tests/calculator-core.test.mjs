@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { BENEFIT_RULES, getBenefitRule } from "../benefit-rules.mjs";
 import {
   assessSixPlusSix,
   calculateFullMonths,
@@ -159,4 +161,102 @@ test("pre-2025 starts require review instead of applying current rates", () => {
   });
   assert.equal(result.status, "review-required");
   assert.equal(result.total, null);
+});
+
+test("calculator monthly rates, caps, and floors match the shared published rules", () => {
+  for (const [scheme, rules] of [
+    ["standard", BENEFIT_RULES.standard],
+    ["singleParent", BENEFIT_RULES.singleParent],
+  ]) {
+    for (const band of rules.bands) {
+      for (let month = band.from; month <= band.through; month += 1) {
+        assert.deepEqual(
+          getBenefitRule(scheme, month),
+          { rate: band.rate, cap: band.cap, floor: BENEFIT_RULES.monthlyFloor },
+        );
+        assert.deepEqual(
+          calculateMonthlyAmount(10_000_000, month, scheme),
+          {
+            amount: band.cap,
+            wageBasedAmount: 10_000_000 * band.rate,
+            rate: band.rate,
+            cap: band.cap,
+            floor: BENEFIT_RULES.monthlyFloor,
+            scheme,
+            conditional: false,
+          },
+        );
+      }
+    }
+  }
+  for (const [index, cap] of BENEFIT_RULES.sixPlusSix.caps.entries()) {
+    const month = index + 1;
+    assert.deepEqual(
+      calculateMonthlyAmount(10_000_000, month, "sixPlusSix", { sixPlusSixApplies: true }),
+      {
+        amount: cap,
+        wageBasedAmount: 10_000_000,
+        rate: 1,
+        cap,
+        floor: BENEFIT_RULES.monthlyFloor,
+        scheme: "sixPlusSix",
+        conditional: true,
+      },
+    );
+  }
+});
+
+test("guide displays the calculator's shared rules dynamically and links official law", async () => {
+  const [html, script, mainHtml] = await Promise.all([
+    readFile(new URL("../guide.html", import.meta.url), "utf8"),
+    readFile(new URL("../guide.js", import.meta.url), "utf8"),
+    readFile(new URL("../index.html", import.meta.url), "utf8"),
+  ]);
+  assert.match(html, /id="benefit-rules-table"/);
+  assert.match(html, /src="guide\.js\?v=1"/);
+  assert.match(mainHtml, /app\.js\?v=4/);
+  assert.match(script, /BENEFIT_RULES\.standard\.bands/);
+  assert.match(script, /BENEFIT_RULES\.sixPlusSix\.caps/);
+  assert.match(script, /BENEFIT_RULES\.singleParent\.bands/);
+  assert.match(html, /제70조/);
+  assert.match(html, /제19조제6항/);
+  assert.match(html, /7일 이상/);
+  assert.match(html, /30일 이내/);
+  assert.match(html, /일반 사후지급금과 다른 특례 정산/);
+  assert.match(mainHtml, /제19조제6항/);
+  assert.match(mainHtml, /첫 이용자 차액을 별도 정산/);
+  assert.doesNotMatch(html, /현재 차수 선택|시작일은 달력월별 표시/);
+  assert.doesNotMatch(html, /200만~450만 원/);
+  assert.match(html, /2026년 11월 5일/);
+  assert.match(html, /95조의3/);
+
+  class Element {
+    children = [];
+    textContent = "";
+    append(...children) {
+      this.children.push(...children);
+    }
+  }
+  const elements = new Map([
+    ["#benefit-rules-table", new Element()],
+    ["#full-month-formula", new Element()],
+    ["#partial-month-formula", new Element()],
+  ]);
+  globalThis.document = {
+    querySelector: (selector) => elements.get(selector),
+    createElement: () => new Element(),
+  };
+  try {
+    await import(`../guide.js?test=${Date.now()}`);
+  } finally {
+    delete globalThis.document;
+  }
+  const generatedRows = elements.get("#benefit-rules-table").children;
+  assert.equal(generatedRows.length, 13);
+  assert.deepEqual(
+    generatedRows.slice(3, 9).map((row) => row.children[2].textContent),
+    BENEFIT_RULES.sixPlusSix.caps.map((cap) => `100% · ${new Intl.NumberFormat("ko-KR").format(cap)}원`),
+  );
+  assert.match(elements.get("#full-month-formula").textContent, /700,000원/);
+  assert.match(elements.get("#partial-month-formula").textContent, /지급대상 일수/);
 });

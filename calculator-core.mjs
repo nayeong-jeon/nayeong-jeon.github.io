@@ -1,18 +1,6 @@
-export const MONTHLY_FLOOR = 700_000;
+import { BENEFIT_RULES, getBenefitRule } from "./benefit-rules.mjs";
 
-const STANDARD_BRACKETS = [
-  { through: 3, rate: 1, cap: 2_500_000 },
-  { through: 6, rate: 1, cap: 2_000_000 },
-  { through: 18, rate: 0.8, cap: 1_600_000 },
-];
-
-const SINGLE_PARENT_BRACKETS = [
-  { through: 3, rate: 1, cap: 3_000_000 },
-  { through: 6, rate: 1, cap: 2_000_000 },
-  { through: 18, rate: 0.8, cap: 1_600_000 },
-];
-
-const SIX_PLUS_SIX_CAPS = [2_500_000, 2_500_000, 3_000_000, 3_500_000, 4_000_000, 4_500_000];
+export const MONTHLY_FLOOR = BENEFIT_RULES.monthlyFloor;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function parseDate(value) {
@@ -37,11 +25,7 @@ function addCalendarMonths(date, count) {
 }
 
 function getBracket(month, scheme, sixPlusSixApplies) {
-  if (scheme === "sixPlusSix" && sixPlusSixApplies && month <= 6) {
-    return { rate: 1, cap: SIX_PLUS_SIX_CAPS[month - 1] };
-  }
-  const brackets = scheme === "singleParent" ? SINGLE_PARENT_BRACKETS : STANDARD_BRACKETS;
-  return brackets.find((bracket) => month <= bracket.through);
+  return getBenefitRule(scheme, month, sixPlusSixApplies);
 }
 
 export function calculateMonthlyAmount(ordinaryWage, month, scheme = "standard", options = {}) {
