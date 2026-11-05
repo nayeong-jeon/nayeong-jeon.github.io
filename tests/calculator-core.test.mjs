@@ -136,6 +136,32 @@ test("partial final month is prorated and displayed by calendar month and legal 
   assert.equal(result.total, 1_209_677);
 });
 
+test("2 million won wage pays 2 million for each complete first-three-month period", () => {
+  const result = calculateLeaveEstimate({
+    ordinaryWage: 2_000_000,
+    periods: [{ startDate: "2026-08-07", endDate: "2026-11-05" }],
+    asOfDate: "2026-11-05",
+  });
+  assert.deepEqual(result.paymentMonths.map(({ amount, complete, eligibleDays, periodDays }) => ({
+    amount, complete, eligibleDays, periodDays,
+  })), [
+    { amount: 2_000_000, complete: true, eligibleDays: 31, periodDays: 31 },
+    { amount: 2_000_000, complete: true, eligibleDays: 30, periodDays: 30 },
+    { amount: 1_935_484, complete: false, eligibleDays: 30, periodDays: 31 },
+  ]);
+  assert.equal(result.total, 5_935_484);
+});
+
+test("prorated benefit can be below the monthly minimum for a partial eligible month", () => {
+  const result = calculateLeaveEstimate({
+    ordinaryWage: 500_000,
+    periods: [{ startDate: "2026-08-07", endDate: "2026-08-21" }],
+  });
+  assert.equal(result.paymentMonths[0].amount, 338_710);
+  assert.equal(result.paymentMonths[0].complete, false);
+  assert.equal(result.paymentMonths[0].floor, 700_000);
+});
+
 test("year boundary uses leave month sequence, not calendar-year reset", () => {
   const result = calculateLeaveEstimate({
     ordinaryWage: 3_500_000,

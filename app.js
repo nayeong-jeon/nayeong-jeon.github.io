@@ -141,8 +141,8 @@ function renderComparison(container, own, spouse) {
 }
 
 function renderMonths(monthly, list, heading, subheading) {
-  heading.textContent = "월별 계산 근거";
-  subheading.textContent = "달력월 표시 · 법정 지급대상 월 차수";
+  heading.textContent = "법정 지급대상 월별 계산";
+  subheading.textContent = "달력월별 합계가 아닌 휴직 시작일 기준 월 차수";
   list.replaceChildren();
   for (const month of monthly) {
     const row = document.createElement("div");
@@ -150,11 +150,12 @@ function renderMonths(monthly, list, heading, subheading) {
     const details = document.createElement("div");
     details.className = "month-row-details";
     const label = document.createElement("span");
-    label.textContent = `${month.calendarMonth} · ${month.legalMonths.map((number) => `${number}개월 차`).join(", ")}`;
+    label.textContent = `${month.month}개월 차 · 달력월 ${month.calendarMonths.join(", ")}`;
     const formula = document.createElement("small");
-    formula.textContent = month.legalMonthDetails
-      .map((detail) => `${detail.rate * 100}% · 상한 ${numberFormat.format(detail.cap)}원 · 하한 ${numberFormat.format(detail.floor)}원 · ${detail.eligibleDays}/${detail.periodDays}일`)
-      .join(" / ");
+    const floorText = month.complete
+      ? `월 하한 ${numberFormat.format(month.floor)}원 적용`
+      : `부분 월 ${month.eligibleDays}/${month.periodDays}일 · 월 하한 ${numberFormat.format(month.floor)}원도 일할 계산`;
+    formula.textContent = `${month.rate * 100}% · 상한 ${numberFormat.format(month.cap)}원 · ${floorText}`;
     const amount = document.createElement("strong");
     amount.textContent = `${numberFormat.format(month.amount)}원`;
     details.append(label, formula);
@@ -241,7 +242,7 @@ function calculate(event) {
     }
 
     renderMonths(
-      standardResult.months,
+      standardResult.paymentMonths,
       document.querySelector("#monthly-list"),
       document.querySelector(".monthly-heading h3"),
       document.querySelector(".monthly-heading span"),

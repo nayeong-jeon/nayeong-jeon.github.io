@@ -92,6 +92,7 @@ function formatMonth(date) {
 function calculateForPeriods(ordinaryWage, periods, scheme, sixPlusSixApplies, maxMonths, asOfDate) {
   const firstStart = periods[0].start;
   const rows = new Map();
+  const paymentMonths = new Map();
   let cumulativeDaysBeforePeriod = 0;
   let totalDays = 0;
   let remaining = 0;
@@ -109,6 +110,21 @@ function calculateForPeriods(ordinaryWage, periods, scheme, sixPlusSixApplies, m
       const legalMonthDays = Math.round((legalMonthEnd - legalMonthStart) / DAY_MS);
       const bracket = calculateMonthlyAmount(ordinaryWage, month, scheme, { sixPlusSixApplies });
       const key = formatMonth(date);
+      const paymentMonth = paymentMonths.get(month) ?? {
+        month,
+        calendarMonths: new Set(),
+        eligibleDays: 0,
+        periodDays: legalMonthDays,
+        amount: 0,
+        rate: bracket.rate,
+        cap: bracket.cap,
+        floor: bracket.floor,
+      };
+      paymentMonth.calendarMonths.add(key);
+      paymentMonth.eligibleDays += 1;
+      paymentMonth.amount += bracket.amount / legalMonthDays;
+      paymentMonths.set(month, paymentMonth);
+
       const row = rows.get(key) ?? {
         calendarMonth: key,
         legalMonths: new Map(),
@@ -137,10 +153,17 @@ function calculateForPeriods(ordinaryWage, periods, scheme, sixPlusSixApplies, m
     cumulativeDaysBeforePeriod += wholeDays(period.start, period.end);
   }
 
+  const monthlyPayments = [...paymentMonths.values()].map((paymentMonth) => ({
+    ...paymentMonth,
+    calendarMonths: [...paymentMonth.calendarMonths],
+    amount: Math.round(paymentMonth.amount),
+    complete: paymentMonth.eligibleDays === paymentMonth.periodDays,
+  }));
   return {
-    total: Math.round([...rows.values()].reduce((sum, row) => sum + row.amount, 0)),
+    total: Math.round([...paymentMonths.values()].reduce((sum, month) => sum + month.amount, 0)),
     remaining: Math.round(remaining),
     eligibleDays: totalDays,
+    paymentMonths: monthlyPayments,
     months: [...rows.values()].map((row) => ({
       calendarMonth: row.calendarMonth,
       legalMonths: [...row.legalMonths.keys()].sort((a, b) => a - b),
