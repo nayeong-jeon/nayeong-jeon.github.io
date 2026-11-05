@@ -59,7 +59,7 @@ function addPeriod(container) {
 document.querySelector("#add-own-period").addEventListener("click", () => addPeriod(ownPeriods));
 document.querySelector("#add-spouse-period").addEventListener("click", () => addPeriod(spousePeriods));
 
-for (const input of document.querySelectorAll('input[type="radio"][name="scheme"]')) {
+for (const input of document.querySelectorAll('.scheme-options input[type="radio"]')) {
   input.addEventListener("change", () => {
     sixPlusSixDetails.hidden = input.value !== "sixPlusSix" || !input.checked;
   });
@@ -167,7 +167,7 @@ function calculate(event) {
   event.preventDefault();
   formError.hidden = true;
   const salary = Number(salaryInput.value.replaceAll(",", ""));
-  const selectedScheme = form.querySelector('input[type="radio"]:checked').value;
+  const selectedScheme = form.querySelector('.scheme-options input[type="radio"]:checked').value;
   const isSixPlusSix = selectedScheme === "sixPlusSix";
 
   try {

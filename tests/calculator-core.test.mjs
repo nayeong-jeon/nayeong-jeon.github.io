@@ -260,3 +260,25 @@ test("guide displays the calculator's shared rules dynamically and links officia
   assert.match(elements.get("#full-month-formula").textContent, /700,000원/);
   assert.match(elements.get("#partial-month-formula").textContent, /지급대상 일수/);
 });
+
+test("privacy notice matches current input fields, storage, network behavior, and contact link", async () => {
+  const [policy, mainHtml, app, styles] = await Promise.all([
+    readFile(new URL("../privacy.html", import.meta.url), "utf8"),
+    readFile(new URL("../index.html", import.meta.url), "utf8"),
+    readFile(new URL("../app.js", import.meta.url), "utf8"),
+    readFile(new URL("../styles.css", import.meta.url), "utf8"),
+  ]);
+  assert.match(policy, /@dalcong_mommy/);
+  assert.match(policy, /instagram\.com\/dalcong_mommy/);
+  assert.match(policy, /자녀 생년월일/);
+  assert.match(policy, /배우자 월 통상임금/);
+  assert.match(policy, /배우자의 시작일·종료일/);
+  assert.match(policy, /localStorage·sessionStorage/);
+  assert.match(policy, /Google Fonts/);
+  assert.match(styles, /fonts\.googleapis\.com/);
+  assert.doesNotMatch(app, /fetch\(|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|document\.cookie/);
+
+  const inputNames = [...mainHtml.matchAll(/<input\b[^>]*\bname=["']([^"']+)["'][^>]*>/g)]
+    .map((match) => match[1]);
+  assert.deepEqual(inputNames, []);
+});
