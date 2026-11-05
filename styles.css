@@ -91,6 +91,24 @@ fieldset.field legend { padding: 0; margin-bottom: 10px; }
 .scheme-option input:focus-visible + .radio-card { outline: 3px solid rgba(80, 142, 110, .2); }
 .eligibility-check { display: flex; gap: 10px; align-items: flex-start; margin: -5px 0 20px; padding: 12px; border-radius: 8px; color: #52635a; background: #f4f7f2; font-size: 11px; line-height: 1.6; cursor: pointer; }
 .eligibility-check input { accent-color: var(--green); }
+.extension-options { margin: 0 0 22px; padding: 12px !important; border-radius: 8px !important; background: #f4f7f2; }
+.extension-options legend { margin-bottom: 8px !important; }
+.extension-options label { display: flex; gap: 8px; align-items: flex-start; margin: 7px 0; color: #52635a; font-size: 10px; line-height: 1.5; cursor: pointer; }
+.extension-options input { margin: 2px 0 0; accent-color: var(--green); }
+.extension-options small { display: block; margin-top: 8px; color: #748179; font-size: 10px; font-weight: 400; line-height: 1.6; }
+.field-help { margin: -4px 0 10px; color: #748179; font-size: 10px; font-weight: 400; line-height: 1.6; }
+.period-group { margin: 0 0 22px; }
+.period-list { display: grid; gap: 9px; }
+.period-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
+.period-row label { display: flex; min-width: 0; flex-direction: column; gap: 6px; color: #748179; font-size: 10px; font-weight: 500; }
+.period-row input { width: 100%; min-width: 0; height: 42px; padding: 0 9px; border: 1px solid #e2e7e1; border-radius: 7px; color: var(--ink); background: white; font: inherit; }
+.add-period-button, .remove-period-button { min-height: 35px; padding: 0 10px; border: 1px solid #dfe8df; border-radius: 6px; color: var(--green-dark); background: #fff; font: inherit; font-size: 10px; cursor: pointer; }
+.remove-period-button { color: #91614f; }
+.six-plus-six-details { margin: -4px 0 20px; padding: 15px; border: 1px solid #dce8dd; border-radius: 8px; background: #f7faf6; }
+.six-plus-six-details h3 { margin: 0 0 14px; color: var(--green-dark); font-size: 13px; }
+.six-plus-six-details h3 span { color: #8a958e; font-size: 10px; font-weight: 400; }
+.six-plus-six-details .field { margin-bottom: 15px; }
+.conditional-warning { margin: 8px 0 0; color: #87603f; font-size: 10px; line-height: 1.7; }
 .calculate-button { width: 100%; height: 49px; display: flex; align-items: center; justify-content: center; gap: 12px; border: 0; border-radius: 7px; color: white; background: var(--green); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, transform .2s; }
 .calculate-button:hover { background: var(--green-dark); transform: translateY(-1px); }
 .calculate-button span { font-size: 16px; }
@@ -112,12 +130,23 @@ fieldset.field legend { padding: 0; margin-bottom: 10px; }
 .total-amount span { padding-left: 5px; font-size: 15px; }
 .result-meta { margin: 5px 0 16px; color: #c3d9cb; font-size: 10px; }
 .result-notice { margin: 0 0 18px; padding: 10px 12px; border-radius: 7px; color: #ffe8c8; background: rgba(255, 255, 255, .11); font-size: 10px; line-height: 1.6; }
+.comparison-result { margin: 0 0 18px; padding: 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.08); }
+.comparison-result h3 { margin: 0 0 9px; font-size: 11px; }
+.comparison-result h4 { margin: 12px 0 5px; font-size: 10px; }
+.comparison-result dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; font-size: 10px; }
+.comparison-result dd { margin: 0; font-weight: 700; text-align: right; }
+.comparison-monthly-list { max-height: 130px; overflow: auto; }
+.comparison-monthly-list p { margin: 0; padding: 4px 0; border-top: 1px solid rgba(255,255,255,.12); color: #d6e8dc; font-size: 9px; line-height: 1.5; }
+.comparison-total, .comparison-note { margin: 10px 0 0; color: #d6e8dc; font-size: 9px; line-height: 1.7; }
+.comparison-note { color: #ffe8c8; }
 .monthly-heading { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.2); }
 .monthly-heading h3 { margin: 0; font-size: 12px; }
 .monthly-heading span { color: #c3d9cb; font-size: 9px; }
 .monthly-list { max-height: 230px; margin-top: 9px; overflow: auto; scrollbar-color: rgba(255,255,255,.3) transparent; scrollbar-width: thin; }
 .month-row { min-height: 35px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 11px; }
-.month-row span:first-child { color: #d2e5d9; }
+.month-row-details { min-width: 0; padding: 6px 8px 6px 0; display: flex; flex-direction: column; gap: 3px; }
+.month-row-details span { color: #d2e5d9; }
+.month-row-details small { color: #bdd3c5; font-size: 9px; line-height: 1.5; }
 .month-row strong { font-size: 11px; font-weight: 600; }
 .calculation-footnote { margin: 12px 0 0; color: #bdd3c5; font-size: 9px; line-height: 1.6; }
 

@@ -1,174 +1,260 @@
-const RATE_LIMITS = {
-  standard: [
-    { through: 3, cap: 2_500_000 },
-    { through: 6, cap: 2_000_000 },
-    { through: 12, cap: 1_600_000 },
-  ],
-  sixPlusSix: [2_000_000, 2_500_000, 3_000_000, 3_500_000, 4_000_000, 4_500_000],
-  singleParent: [
-    { through: 3, cap: 3_000_000 },
-    { through: 6, cap: 2_000_000 },
-    { through: 12, cap: 1_600_000 },
-  ],
-};
+import { calculateLeaveEstimate } from "./calculator-core.mjs";
 
 const form = document.querySelector("#calculator-form");
 const salaryInput = document.querySelector("#salary");
-const startDateInput = document.querySelector("#start-date");
-const durationSelect = document.querySelector("#duration");
-const currentMonthSelect = document.querySelector("#current-month");
-const sixPlusSixCheck = document.querySelector("#six-plus-six-check");
-const partnerEligibleInput = document.querySelector("#partner-eligible");
+const spouseSalaryInput = document.querySelector("#spouse-salary");
+const ownPeriods = document.querySelector("#own-periods");
+const spousePeriods = document.querySelector("#spouse-periods");
+const sixPlusSixDetails = document.querySelector("#six-plus-six-details");
 const formError = document.querySelector("#form-error");
 const result = document.querySelector("#result");
 const emptyResult = document.querySelector("#empty-result");
 const calculatedResult = document.querySelector("#calculated-result");
 const numberFormat = new Intl.NumberFormat("ko-KR");
 
-salaryInput.addEventListener("input", () => {
-  const cursor = salaryInput.selectionStart ?? salaryInput.value.length;
-  const digitsBeforeCursor = salaryInput.value.slice(0, cursor).replace(/\D/g, "").length;
-  const digits = salaryInput.value.replace(/\D/g, "");
-  salaryInput.value = digits ? numberFormat.format(Number(digits)) : "";
+function formatCurrencyInput(input) {
+  input.addEventListener("input", () => {
+    const cursor = input.selectionStart ?? input.value.length;
+    const digitsBeforeCursor = input.value.slice(0, cursor).replace(/\D/g, "").length;
+    const digits = input.value.replace(/\D/g, "");
+    input.value = digits ? numberFormat.format(Number(digits)) : "";
 
-  let nextCursor = 0;
-  let digitsSeen = 0;
-  while (nextCursor < salaryInput.value.length && digitsSeen < digitsBeforeCursor) {
-    if (/\d/.test(salaryInput.value[nextCursor])) digitsSeen += 1;
-    nextCursor += 1;
-  }
-  salaryInput.setSelectionRange(nextCursor, nextCursor);
-});
-
-function populateMonthOptions(select, first, last) {
-  const previous = Number(select.value) || first;
-  select.replaceChildren();
-  for (let month = first; month <= last; month += 1) {
-    const option = document.createElement("option");
-    option.value = String(month);
-    option.textContent = `${month}개월`;
-    select.append(option);
-  }
-  select.value = String(Math.min(Math.max(previous, first), last));
-}
-
-populateMonthOptions(durationSelect, 1, 12);
-populateMonthOptions(currentMonthSelect, 1, 12);
-startDateInput.value = new Date().toISOString().slice(0, 10);
-
-durationSelect.addEventListener("change", () => {
-  populateMonthOptions(currentMonthSelect, 1, Number(durationSelect.value));
-});
-
-for (const schemeInput of document.querySelectorAll('input[name="scheme"]')) {
-  schemeInput.addEventListener("change", () => {
-    const isSixPlusSix = schemeInput.checked && schemeInput.value === "sixPlusSix";
-    if (isSixPlusSix) {
-      sixPlusSixCheck.hidden = false;
-    } else if (schemeInput.checked) {
-      sixPlusSixCheck.hidden = true;
-      partnerEligibleInput.checked = false;
+    let nextCursor = 0;
+    let digitsSeen = 0;
+    while (nextCursor < input.value.length && digitsSeen < digitsBeforeCursor) {
+      if (/\d/.test(input.value[nextCursor])) digitsSeen += 1;
+      nextCursor += 1;
     }
+    input.setSelectionRange(nextCursor, nextCursor);
   });
 }
 
-function capForMonth(scheme, month, sixPlusSixEligible) {
-  if (scheme === "sixPlusSix" && sixPlusSixEligible && month <= 6) {
-    return RATE_LIMITS.sixPlusSix[month - 1];
+formatCurrencyInput(salaryInput);
+formatCurrencyInput(spouseSalaryInput);
+
+function addPeriod(container) {
+  const row = document.createElement("div");
+  row.className = "period-row";
+  for (const [label, className] of [["시작일", "period-start"], ["종료일", "period-end"]]) {
+    const field = document.createElement("label");
+    const caption = document.createElement("span");
+    const input = document.createElement("input");
+    caption.textContent = label;
+    input.className = className;
+    input.type = "date";
+    input.required = true;
+    field.append(caption, input);
+    row.append(field);
   }
-  const rates = scheme === "singleParent" ? RATE_LIMITS.singleParent : RATE_LIMITS.standard;
-  return rates.find((rate) => month <= rate.through).cap;
+  const remove = document.createElement("button");
+  remove.className = "remove-period-button";
+  remove.type = "button";
+  remove.textContent = "기간 삭제";
+  remove.setAttribute("aria-label", "추가한 육아휴직 기간 삭제");
+  remove.addEventListener("click", () => row.remove());
+  row.append(remove);
+  container.append(row);
 }
 
-function formatMonth(startDate, monthNumber) {
-  const date = new Date(startDate);
-  const targetMonth = date.getMonth() + monthNumber - 1;
-  const targetYear = date.getFullYear() + Math.floor(targetMonth / 12);
-  const normalizedMonth = ((targetMonth % 12) + 12) % 12;
-  const lastDay = new Date(targetYear, normalizedMonth + 1, 0).getDate();
-  date.setFullYear(targetYear, normalizedMonth, Math.min(date.getDate(), lastDay));
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}`;
+document.querySelector("#add-own-period").addEventListener("click", () => addPeriod(ownPeriods));
+document.querySelector("#add-spouse-period").addEventListener("click", () => addPeriod(spousePeriods));
+
+for (const input of document.querySelectorAll('input[type="radio"][name="scheme"]')) {
+  input.addEventListener("change", () => {
+    sixPlusSixDetails.hidden = input.value !== "sixPlusSix" || !input.checked;
+  });
 }
 
-function getSchemeLabel(scheme, eligible) {
-  if (scheme === "singleParent") return "한부모 특례";
-  if (scheme === "sixPlusSix" && eligible) return "6+6 부모육아휴직제";
-  if (scheme === "sixPlusSix") return "일반 육아휴직 급여 기준";
-  return "일반 육아휴직";
+function collectPeriods(container, required, label) {
+  const periods = [];
+  for (const [index, row] of [...container.querySelectorAll(".period-row")].entries()) {
+    const startDate = row.querySelector(".period-start").value;
+    const endDate = row.querySelector(".period-end").value;
+    if (!startDate && !endDate && index > 0) continue;
+    if (!startDate && !endDate && !required) continue;
+    if (!startDate || !endDate) throw new RangeError(`${label} 육아휴직 시작일과 종료일을 모두 입력해 주세요.`);
+    periods.push({ startDate, endDate });
+  }
+  if (required && periods.length === 0) throw new RangeError(`${label} 육아휴직 기간을 입력해 주세요.`);
+  return periods;
 }
 
 function showError(message) {
   formError.textContent = message;
   formError.hidden = false;
+  formError.focus();
+}
+
+function renderComparison(container, own, spouse) {
+  container.replaceChildren();
+  const heading = document.createElement("h3");
+  heading.textContent = "6+6 특례 조건 충족 가정 비교";
+  container.append(heading);
+
+  const list = document.createElement("dl");
+  const rows = [
+    ["본인 일반 급여 예상액", own.standard.total],
+    ["본인 6+6 조건 가정액", own.hypothetical.total],
+    ["배우자 일반 급여 예상액", spouse?.standard.total],
+    ["배우자 6+6 조건 가정액", spouse?.hypothetical.total],
+  ];
+  for (const [label, amount] of rows) {
+    if (amount === undefined) continue;
+    const term = document.createElement("dt");
+    const value = document.createElement("dd");
+    term.textContent = label;
+    value.textContent = `${numberFormat.format(amount)}원`;
+    list.append(term, value);
+  }
+  const difference = document.createElement("p");
+  difference.className = "comparison-total";
+  difference.textContent = `본인 기준 차이 ${numberFormat.format(own.hypotheticalDifference)}원`;
+  if (spouse) {
+    const total = document.createElement("p");
+    total.className = "comparison-total";
+    total.textContent = `부모 합산 조건 가정액 ${numberFormat.format(own.hypothetical.total + spouse.hypothetical.total)}원 · 일반 기준 합산 예상액 ${numberFormat.format(own.standard.total + spouse.standard.total)}원`;
+    const spouseDifference = document.createElement("p");
+    spouseDifference.className = "comparison-total";
+    spouseDifference.textContent = `배우자 기준 차이 ${numberFormat.format(spouse.hypotheticalDifference)}원`;
+    container.append(list, difference, spouseDifference, total);
+  } else {
+    container.append(list, difference);
+  }
+  for (const [label, estimate] of [["본인", own], ...(spouse ? [["배우자", spouse]] : [])]) {
+    const subheading = document.createElement("h4");
+    subheading.textContent = `${label} 월별 일반 기준 / 6+6 가정액`;
+    const monthlyList = document.createElement("div");
+    monthlyList.className = "comparison-monthly-list";
+    estimate.standard.months.forEach((month, index) => {
+      const specialMonth = estimate.hypothetical.months[index];
+      const row = document.createElement("p");
+      row.textContent = `${month.calendarMonth} · ${month.legalMonths.map((number) => `${number}개월 차`).join(", ")}: ${numberFormat.format(month.amount)}원 / ${numberFormat.format(specialMonth?.amount ?? 0)}원`;
+      monthlyList.append(row);
+    });
+    container.append(subheading, monthlyList);
+  }
+  const note = document.createElement("p");
+  note.className = "comparison-note";
+  note.textContent = "조건 가정액은 수급 확정액이 아닙니다. 첫 이용자에게 나중에 지급될 수 있는 특례 차액은 월별 급여·실제 입금시기와 별개이며, 부모별 지급 구조와 시기는 고용센터에서 확인해야 합니다.";
+  container.append(note);
+  container.hidden = false;
+}
+
+function renderMonths(monthly, list, heading, subheading) {
+  heading.textContent = "월별 계산 근거";
+  subheading.textContent = "달력월 표시 · 법정 지급대상 월 차수";
+  list.replaceChildren();
+  for (const month of monthly) {
+    const row = document.createElement("div");
+    row.className = "month-row";
+    const details = document.createElement("div");
+    details.className = "month-row-details";
+    const label = document.createElement("span");
+    label.textContent = `${month.calendarMonth} · ${month.legalMonths.map((number) => `${number}개월 차`).join(", ")}`;
+    const formula = document.createElement("small");
+    formula.textContent = month.legalMonthDetails
+      .map((detail) => `${detail.rate * 100}% · 상한 ${numberFormat.format(detail.cap)}원 · 하한 ${numberFormat.format(detail.floor)}원 · ${detail.eligibleDays}/${detail.periodDays}일`)
+      .join(" / ");
+    const amount = document.createElement("strong");
+    amount.textContent = `${numberFormat.format(month.amount)}원`;
+    details.append(label, formula);
+    row.append(details, amount);
+    list.append(row);
+  }
 }
 
 function calculate(event) {
   event.preventDefault();
   formError.hidden = true;
-
   const salary = Number(salaryInput.value.replaceAll(",", ""));
-  const duration = Number(durationSelect.value);
-  const firstMonth = Number(currentMonthSelect.value);
-  const scheme = new FormData(form).get("scheme");
-  const sixPlusSixEligible = scheme === "sixPlusSix" && partnerEligibleInput.checked;
-  const startDate = new Date(`${startDateInput.value}T00:00:00`);
+  const selectedScheme = form.querySelector('input[type="radio"]:checked').value;
+  const isSixPlusSix = selectedScheme === "sixPlusSix";
 
-  if (!Number.isFinite(salary) || salary <= 0 || salary > 100_000_000) {
-    showError("월 통상임금을 0원 초과, 100,000,000원 이하로 입력해 주세요.");
-    salaryInput.focus();
-    return;
-  }
-  if (!startDateInput.value || Number.isNaN(startDate.getTime())) {
-    showError("육아휴직 시작일을 확인해 주세요.");
-    startDateInput.focus();
-    return;
-  }
-  if (firstMonth > duration) {
-    showError("계산 시작 차수는 전체 휴직 기간보다 클 수 없습니다.");
-    currentMonthSelect.focus();
-    return;
-  }
-
-  const months = [];
-  for (let month = firstMonth; month <= duration; month += 1) {
-    const cap = capForMonth(scheme, month, sixPlusSixEligible);
-    months.push({
-      month,
-      date: formatMonth(startDate, month),
-      amount: Math.min(salary, cap),
-      cap,
+  try {
+    if (!Number.isFinite(salary) || salary <= 0 || salary > 100_000_000) {
+      throw new RangeError("월 통상임금을 0원 초과, 100,000,000원 이하로 입력해 주세요.");
+    }
+    const ownSchedule = collectPeriods(ownPeriods, true, "본인");
+    const spouseSchedule = collectPeriods(spousePeriods, isSixPlusSix, "배우자");
+    const childBirthDate = document.querySelector("#child-birth-date").value;
+    if (isSixPlusSix && !childBirthDate) {
+      throw new RangeError("6+6 조건 가정액 비교를 위해 자녀 생년월일을 입력해 주세요.");
+    }
+    const extensionEligible = [
+      "#extension-parent",
+      "#extension-single-parent",
+      "#extension-disabled-child",
+    ].some((selector) => document.querySelector(selector).checked);
+    const asOfDate = new Date().toISOString().slice(0, 10);
+    const estimate = calculateLeaveEstimate({
+      ordinaryWage: salary,
+      periods: ownSchedule,
+      scheme: selectedScheme,
+      extensionEligible,
+      childBirthDate,
+      spousePeriods: spouseSchedule,
+      asOfDate,
     });
+    if (estimate.status !== "estimate" && estimate.status !== "conditional") {
+      throw new RangeError(estimate.message);
+    }
+
+    const standardResult = selectedScheme === "sixPlusSix" ? estimate.standard : estimate;
+    document.querySelector("#result-caption").textContent = selectedScheme === "sixPlusSix"
+      ? "일반 육아휴직 기준 참고 예상액"
+      : selectedScheme === "singleParent"
+        ? "한부모 법정 자격 충족 가정 예상액"
+        : "일반 육아휴직 예상액";
+    document.querySelector("#total-amount").textContent = numberFormat.format(standardResult.total);
+    document.querySelector("#result-meta").textContent = `전체 입력 기간 ${numberFormat.format(standardResult.total)}원 · 오늘 이후 잔여 기간 ${numberFormat.format(standardResult.remaining)}원 · 월 통상임금 ${numberFormat.format(salary)}원`;
+
+    const notice = document.querySelector("#result-notice");
+    if (isSixPlusSix) {
+      const spouseSalary = Number(spouseSalaryInput.value.replaceAll(",", ""));
+      let spouseEstimate;
+      if (spouseSalary > 0) {
+        spouseEstimate = calculateLeaveEstimate({
+          ordinaryWage: spouseSalary,
+          periods: spouseSchedule,
+          scheme: "sixPlusSix",
+          extensionEligible,
+          childBirthDate,
+          spousePeriods: ownSchedule,
+          asOfDate,
+        });
+      }
+      renderComparison(document.querySelector("#comparison-result"), estimate, spouseEstimate);
+      const assessment = estimate.sixPlusSixAssessment;
+      const ageMessage = assessment.ageWindowAppearsMet === true
+        ? "입력된 부모의 시작일은 생후 18개월 기준일 범위에 있습니다."
+        : "입력된 일정이 생후 18개월 요건에 해당하는지 확인이 필요합니다.";
+      notice.textContent = `${ageMessage} 6+6 특례 충족 가정 비교입니다. 고용보험 피보험단위기간 등 급여 자격은 미확인입니다. 미입력한 배우자 통상임금이 있으면 부모 합산액은 표시하지 않습니다. 분할·합산 인정, 경과규정, 첫 이용자 차액 지급 시점은 관할 고용센터에서 확인해 주세요.`;
+      notice.hidden = false;
+    } else {
+      document.querySelector("#comparison-result").hidden = true;
+      notice.textContent = selectedScheme === "singleParent"
+        ? "한부모 특례와 고용보험 급여 자격 충족을 가정한 예상액입니다. 가족 형태 선택만으로 수급 자격이 확인되는 것은 아니며, 피보험단위기간 등은 미확인입니다."
+        : extensionEligible
+          ? "18개월 계산은 연장 자격을 충족한다고 입력한 경우의 예상액입니다. 고용보험 급여 자격도 미확인입니다. 6+6 급여 특례와는 별도로 판단합니다."
+          : "고용보험 피보험단위기간 등 지급 자격이 미확인된 조건 가정 예상액입니다. 최종 자격과 지급액은 관할 고용센터에서 결정합니다.";
+      notice.hidden = false;
+    }
+
+    renderMonths(
+      standardResult.months,
+      document.querySelector("#monthly-list"),
+      document.querySelector(".monthly-heading h3"),
+      document.querySelector(".monthly-heading span"),
+    );
+    if (selectedScheme === "sixPlusSix") {
+      document.querySelector(".monthly-heading h3").textContent = "일반 기준 월별 비교";
+    }
+    emptyResult.hidden = true;
+    calculatedResult.hidden = false;
+    result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } catch (error) {
+    showError(error instanceof Error ? error.message : "입력값을 확인해 주세요.");
   }
-
-  const total = months.reduce((sum, month) => sum + month.amount, 0);
-  document.querySelector("#result-caption").textContent = `${getSchemeLabel(scheme, sixPlusSixEligible)} · ${months.length}개월 예상`;
-  document.querySelector("#total-amount").textContent = numberFormat.format(total);
-  document.querySelector("#result-meta").textContent = `월 통상임금 ${numberFormat.format(salary)}원 기준`;
-
-  const notice = document.querySelector("#result-notice");
-  if (scheme === "sixPlusSix" && !sixPlusSixEligible) {
-    notice.textContent = "6+6 적용 조건을 선택하지 않아 일반 급여 상한으로 계산했어요. 자녀 연령과 부모 각각의 사용 조건을 고용24에서 확인해 주세요.";
-    notice.hidden = false;
-  } else {
-    notice.hidden = true;
-  }
-
-  const list = document.querySelector("#monthly-list");
-  list.replaceChildren();
-  for (const month of months) {
-    const row = document.createElement("div");
-    row.className = "month-row";
-    const label = document.createElement("span");
-    label.textContent = `${month.month}개월 차 · ${month.date}`;
-    const amount = document.createElement("strong");
-    amount.textContent = `${numberFormat.format(month.amount)}원`;
-    row.append(label, amount);
-    list.append(row);
-  }
-
-  emptyResult.hidden = true;
-  calculatedResult.hidden = false;
-  result.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 form.addEventListener("submit", calculate);
