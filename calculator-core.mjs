@@ -95,6 +95,7 @@ function calculateForPeriods(ordinaryWage, periods, scheme, sixPlusSixApplies, m
   const paymentMonths = new Map();
   let cumulativeDaysBeforePeriod = 0;
   let totalDays = 0;
+  let ignoredDays = 0;
   let remaining = 0;
   const asOf = asOfDate ? parseDate(asOfDate) : null;
 
@@ -103,7 +104,10 @@ function calculateForPeriods(ordinaryWage, periods, scheme, sixPlusSixApplies, m
       const date = addDays(period.start, offset);
       const virtualDate = addDays(firstStart, cumulativeDaysBeforePeriod + offset);
       const month = monthsCompleted(firstStart, virtualDate) + 1;
-      if (month > maxMonths) continue;
+      if (month > maxMonths) {
+        ignoredDays += 1;
+        continue;
+      }
 
       const legalMonthStart = addCalendarMonths(firstStart, month - 1);
       const legalMonthEnd = addCalendarMonths(firstStart, month);
@@ -163,6 +167,7 @@ function calculateForPeriods(ordinaryWage, periods, scheme, sixPlusSixApplies, m
     total: Math.round([...paymentMonths.values()].reduce((sum, month) => sum + month.amount, 0)),
     remaining: Math.round(remaining),
     eligibleDays: totalDays,
+    ignoredDays,
     paymentMonths: monthlyPayments,
     months: [...rows.values()].map((row) => ({
       calendarMonth: row.calendarMonth,
@@ -175,12 +180,6 @@ function calculateForPeriods(ordinaryWage, periods, scheme, sixPlusSixApplies, m
       })),
     })),
   };
-}
-
-function accumulatedUsageMonths(periods) {
-  const firstStart = periods[0].start;
-  const days = periods.reduce((sum, period) => sum + wholeDays(period.start, period.end), 0);
-  return monthsCompleted(firstStart, addDays(firstStart, Math.max(0, days - 1)));
 }
 
 export function assessSixPlusSix({ childBirthDate, ownPeriods, spousePeriods }) {
@@ -232,21 +231,6 @@ export function calculateLeaveEstimate({
     };
   }
   const maxMonths = extensionEligible ? 18 : 12;
-  const usageMonths = accumulatedUsageMonths(parsed);
-  if (!extensionEligible && usageMonths >= 12) {
-    return {
-      status: "extension-unconfirmed",
-      total: null,
-      message: "12개월 초과 기간은 연장 자격이 확인되지 않아 계산하지 않습니다.",
-    };
-  }
-  if (usageMonths >= 18) {
-    return {
-      status: "beyond-limit",
-      total: null,
-      message: "법정 최대 18개월을 넘는 기간은 계산하지 않습니다.",
-    };
-  }
   if (scheme === "sixPlusSix") {
     const assessment = assessSixPlusSix({ childBirthDate, ownPeriods: periods, spousePeriods });
     const standard = calculateForPeriods(ordinaryWage, parsed, "standard", false, maxMonths, asOfDate);

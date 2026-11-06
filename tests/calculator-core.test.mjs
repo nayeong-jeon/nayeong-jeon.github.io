@@ -117,12 +117,17 @@ test("split leave periods accumulate legal-month use after a break", () => {
   assert.deepEqual([...new Set(result.months.flatMap(({ legalMonths }) => legalMonths))], [1, 2]);
 });
 
-test("18-month extension is refused unless eligibility is confirmed", () => {
+test("unconfirmed leave beyond 12 months calculates the first 12 months and treats the rest as zero", () => {
   const periods = [{ startDate: "2025-01-01", endDate: "2026-06-30" }];
   const unconfirmed = calculateLeaveEstimate({ ordinaryWage: 3_500_000, periods });
   const confirmed = calculateLeaveEstimate({ ordinaryWage: 3_500_000, periods, extensionEligible: true });
-  assert.equal(unconfirmed.status, "extension-unconfirmed");
+  assert.equal(unconfirmed.status, "estimate");
+  assert.equal(unconfirmed.total, 23_100_000);
+  assert.equal(unconfirmed.paymentMonths.length, 12);
+  assert.equal(unconfirmed.paymentMonths.at(-1).month, 12);
+  assert.equal(unconfirmed.ignoredDays, 181);
   assert.equal(confirmed.total, 32_700_000);
+  assert.equal(confirmed.ignoredDays, 0);
 });
 
 test("partial final month is prorated and displayed by calendar month and legal month", () => {
@@ -252,7 +257,7 @@ test("guide displays the calculator's shared rules dynamically and links officia
   ]);
   assert.match(html, /id="benefit-rules-table"/);
   assert.match(html, /src="guide\.js\?v=1"/);
-  assert.match(mainHtml, /app\.js\?v=6/);
+  assert.match(mainHtml, /app\.js\?v=7/);
   assert.match(script, /BENEFIT_RULES\.standard\.bands/);
   assert.match(script, /BENEFIT_RULES\.sixPlusSix\.caps/);
   assert.match(script, /BENEFIT_RULES\.singleParent\.bands/);

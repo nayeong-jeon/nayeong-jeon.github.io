@@ -286,6 +286,10 @@ function calculate(event) {
       document.querySelector(".monthly-heading h3"),
       document.querySelector(".monthly-heading span"),
     );
+    if (standardResult.ignoredDays > 0) {
+      notice.textContent += ` 법정 계산기간을 넘는 ${numberFormat.format(standardResult.ignoredDays)}일은 0원으로 처리하고 앞의 ${extensionEligible ? 18 : 12}개월까지만 합산했습니다.`;
+      notice.hidden = false;
+    }
     if (selectedScheme === "sixPlusSix") {
       document.querySelector(".monthly-heading h3").textContent = "일반 기준 월별 비교";
     }
