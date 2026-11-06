@@ -32,6 +32,32 @@ function formatCurrencyInput(input) {
 formatCurrencyInput(salaryInput);
 formatCurrencyInput(spouseSalaryInput);
 
+function formatDateInput(input) {
+  input.addEventListener("input", () => {
+    const cursor = input.selectionStart ?? input.value.length;
+    const digitsBeforeCursor = input.value.slice(0, cursor).replace(/\D/g, "").length;
+    const digits = input.value.replace(/\D/g, "").slice(0, 8);
+    let formatted = digits.slice(0, 4);
+    if (digits.length >= 4) formatted += "-";
+    if (digits.length > 4) formatted += digits.slice(4, 6);
+    if (digits.length >= 6) formatted += "-";
+    if (digits.length > 6) formatted += digits.slice(6, 8);
+    input.value = formatted;
+    input.setSelectionRange(
+      digitsBeforeCursor + (digitsBeforeCursor >= 4 ? 1 : 0) + (digitsBeforeCursor >= 6 ? 1 : 0),
+      digitsBeforeCursor + (digitsBeforeCursor >= 4 ? 1 : 0) + (digitsBeforeCursor >= 6 ? 1 : 0),
+    );
+  });
+}
+
+function isValidDateInput(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+document.querySelectorAll(".date-input").forEach(formatDateInput);
+
 function addPeriod(container) {
   const row = document.createElement("div");
   row.className = "period-row";
@@ -41,7 +67,12 @@ function addPeriod(container) {
     const input = document.createElement("input");
     caption.textContent = label;
     input.className = className;
-    input.type = "date";
+    input.type = "text";
+    input.inputMode = "numeric";
+    input.maxLength = 10;
+    input.placeholder = "YYYY-MM-DD";
+    input.classList.add("date-input");
+    formatDateInput(input);
     input.required = true;
     field.append(caption, input);
     row.append(field);
@@ -73,6 +104,9 @@ function collectPeriods(container, required, label) {
     if (!startDate && !endDate && index > 0) continue;
     if (!startDate && !endDate && !required) continue;
     if (!startDate || !endDate) throw new RangeError(`${label} 육아휴직 시작일과 종료일을 모두 입력해 주세요.`);
+    if (!isValidDateInput(startDate) || !isValidDateInput(endDate)) {
+      throw new RangeError(`${label} 날짜를 연도 4자리-월 2자리-일 2자리로 입력해 주세요.`);
+    }
     periods.push({ startDate, endDate });
   }
   if (required && periods.length === 0) throw new RangeError(`${label} 육아휴직 기간을 입력해 주세요.`);
@@ -182,6 +216,9 @@ function calculate(event) {
     const childBirthDate = document.querySelector("#child-birth-date").value;
     if (isSixPlusSix && !childBirthDate) {
       throw new RangeError("6+6 조건 가정액 비교를 위해 자녀 생년월일을 입력해 주세요.");
+    }
+    if (childBirthDate && !isValidDateInput(childBirthDate)) {
+      throw new RangeError("자녀 생년월일을 연도 4자리-월 2자리-일 2자리로 입력해 주세요.");
     }
     const extensionEligible = [
       "#extension-parent",

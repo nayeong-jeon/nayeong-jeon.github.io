@@ -252,10 +252,14 @@ test("guide displays the calculator's shared rules dynamically and links officia
   ]);
   assert.match(html, /id="benefit-rules-table"/);
   assert.match(html, /src="guide\.js\?v=1"/);
-  assert.match(mainHtml, /app\.js\?v=5/);
+  assert.match(mainHtml, /app\.js\?v=6/);
   assert.match(script, /BENEFIT_RULES\.standard\.bands/);
   assert.match(script, /BENEFIT_RULES\.sixPlusSix\.caps/);
   assert.match(script, /BENEFIT_RULES\.singleParent\.bands/);
+  assert.match(mainHtml, /id="child-birth-date" class="date-input" type="text" inputmode="numeric"/);
+  assert.equal([...mainHtml.matchAll(/class="(?:period-start|period-end) date-input" type="text"/g)].length, 4);
+  assert.match(mainHtml, /연도 4자리, 월 2자리, 일 2자리/);
+  assert.match(await readFile(new URL("../app.js", import.meta.url), "utf8"), /function formatDateInput/);
   assert.doesNotMatch(mainHtml, /id="child-birth-date"[^>]*(?:min|max)=/);
   assert.match(html, /제70조/);
   assert.match(html, /제19조제6항/);
