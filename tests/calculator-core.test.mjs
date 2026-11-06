@@ -255,15 +255,21 @@ test("guide displays the calculator's shared rules dynamically and links officia
     readFile(new URL("../guide.js", import.meta.url), "utf8"),
     readFile(new URL("../index.html", import.meta.url), "utf8"),
   ]);
+  const appScript = await readFile(new URL("../app.js", import.meta.url), "utf8");
   assert.match(html, /id="benefit-rules-table"/);
   assert.match(html, /src="guide\.js\?v=1"/);
-  assert.match(mainHtml, /app\.js\?v=8/);
+  assert.match(mainHtml, /app\.js\?v=10/);
   assert.match(script, /BENEFIT_RULES\.standard\.bands/);
   assert.match(script, /BENEFIT_RULES\.sixPlusSix\.caps/);
   assert.match(script, /BENEFIT_RULES\.singleParent\.bands/);
   assert.match(mainHtml, /id="child-birth-date" class="date-input" type="text" inputmode="numeric"/);
   assert.equal([...mainHtml.matchAll(/class="(?:period-start|period-end) date-input" type="text"/g)].length, 4);
   assert.match(mainHtml, /연도 4자리, 월 2자리, 일 2자리/);
+  assert.equal([...mainHtml.matchAll(/type="radio" name="scheme"/g)].length, 3);
+  assert.match(mainHtml, /배우자 월 통상임금 <span class="required">\*<\/span>/);
+  assert.match(appScript, /spouseSalaryInput\.required = isSixPlusSix/);
+  assert.match(appScript, /ordinaryWage: spouseSalary/);
+  assert.match(appScript, /부모 합산 예상액을 표시합니다/);
   assert.match(await readFile(new URL("../app.js", import.meta.url), "utf8"), /function formatDateInput/);
   assert.doesNotMatch(mainHtml, /id="child-birth-date"[^>]*(?:min|max)=/);
   assert.match(html, /제70조/);
@@ -329,5 +335,5 @@ test("privacy notice matches current input fields, storage, network behavior, an
 
   const inputNames = [...mainHtml.matchAll(/<input\b[^>]*\bname=["']([^"']+)["'][^>]*>/g)]
     .map((match) => match[1]);
-  assert.deepEqual(inputNames, []);
+  assert.deepEqual(inputNames, ["scheme", "scheme", "scheme"]);
 });

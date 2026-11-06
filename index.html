@@ -19,7 +19,7 @@
     <meta name="twitter:description" content="월 통상임금으로 육아휴직 급여를 월별 계산하고 신청 안내를 확인하세요.">
 
     <link rel="stylesheet" href="styles.css?v=5">
-    <script type="module" src="app.js?v=8"></script>
+    <script type="module" src="app.js?v=10"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -110,21 +110,21 @@
             <legend>적용받을 제도 <span class="required">*</span></legend>
             <div class="scheme-options">
               <label class="scheme-option">
-                <input type="radio" value="standard" checked>
+                <input type="radio" name="scheme" value="standard" checked>
                 <span class="radio-card">
                   <strong>일반 육아휴직</strong>
                   <small>일반적인 육아휴직 급여</small>
                 </span>
               </label>
               <label class="scheme-option">
-                <input type="radio" value="sixPlusSix">
+                <input type="radio" name="scheme" value="sixPlusSix">
                 <span class="radio-card">
                   <strong>6+6 부모육아휴직제</strong>
                   <small>생후 18개월 이내 자녀</small>
                 </span>
               </label>
               <label class="scheme-option">
-                <input type="radio" value="singleParent">
+                <input type="radio" name="scheme" value="singleParent">
                 <span class="radio-card">
                   <strong>한부모 특례</strong>
                   <small>한부모 근로자 해당 시</small>
@@ -144,7 +144,7 @@
           <section class="six-plus-six-details" id="six-plus-six-details" hidden aria-label="6+6 부모육아휴직제 조건 입력">
             <h3>6+6 조건 입력 <span>(충족 가정 예상)</span></h3>
             <label class="field">
-              <span>배우자 월 통상임금</span>
+              <span>배우자 월 통상임금 <span class="required">*</span></span>
               <span class="input-with-unit"><input id="spouse-salary" type="text" inputmode="numeric" autocomplete="off" placeholder="예: 3,500,000"><span>원</span></span>
             </label>
             <fieldset class="field period-group">

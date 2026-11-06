@@ -92,7 +92,9 @@ document.querySelector("#add-spouse-period").addEventListener("click", () => add
 
 for (const input of document.querySelectorAll('.scheme-options input[type="radio"]')) {
   input.addEventListener("change", () => {
-    sixPlusSixDetails.hidden = input.value !== "sixPlusSix" || !input.checked;
+    const isSixPlusSix = input.value === "sixPlusSix" && input.checked;
+    sixPlusSixDetails.hidden = !isSixPlusSix;
+    spouseSalaryInput.required = isSixPlusSix;
   });
 }
 
@@ -217,6 +219,10 @@ function calculate(event) {
     if (isSixPlusSix && !childBirthDate) {
       throw new RangeError("6+6 조건 가정액 비교를 위해 자녀 생년월일을 입력해 주세요.");
     }
+    const spouseSalary = Number(spouseSalaryInput.value.replaceAll(",", ""));
+    if (isSixPlusSix && (!Number.isFinite(spouseSalary) || spouseSalary <= 0 || spouseSalary > 100_000_000)) {
+      throw new RangeError("6+6 부모별 예상액을 계산하려면 배우자 월 통상임금을 0원 초과, 100,000,000원 이하로 입력해 주세요.");
+    }
     if (childBirthDate && !isValidDateInput(childBirthDate)) {
       throw new RangeError("자녀 생년월일을 연도 4자리-월 2자리-일 2자리로 입력해 주세요.");
     }
@@ -250,25 +256,21 @@ function calculate(event) {
 
     const notice = document.querySelector("#result-notice");
     if (isSixPlusSix) {
-      const spouseSalary = Number(spouseSalaryInput.value.replaceAll(",", ""));
-      let spouseEstimate;
-      if (spouseSalary > 0) {
-        spouseEstimate = calculateLeaveEstimate({
-          ordinaryWage: spouseSalary,
-          periods: spouseSchedule,
-          scheme: "sixPlusSix",
-          extensionEligible,
-          childBirthDate,
-          spousePeriods: ownSchedule,
-          asOfDate,
-        });
-      }
+      const spouseEstimate = calculateLeaveEstimate({
+        ordinaryWage: spouseSalary,
+        periods: spouseSchedule,
+        scheme: "sixPlusSix",
+        extensionEligible,
+        childBirthDate,
+        spousePeriods: ownSchedule,
+        asOfDate,
+      });
       renderComparison(document.querySelector("#comparison-result"), estimate, spouseEstimate);
       const assessment = estimate.sixPlusSixAssessment;
       const ageMessage = assessment.ageWindowAppearsMet === true
         ? "입력된 부모의 시작일은 생후 18개월 기준일 범위에 있습니다."
         : "입력된 일정이 생후 18개월 요건에 해당하는지 확인이 필요합니다.";
-      notice.textContent = `${ageMessage} 6+6 특례 충족 가정 비교입니다. 고용보험 피보험단위기간 등 급여 자격은 미확인입니다. 미입력한 배우자 통상임금이 있으면 부모 합산액은 표시하지 않습니다. 분할·합산 인정, 경과규정, 첫 이용자 차액 지급 시점은 관할 고용센터에서 확인해 주세요.`;
+      notice.textContent = `${ageMessage} 6+6 특례 충족 가정 비교입니다. 본인과 배우자 각각의 급여 및 부모 합산 예상액을 표시합니다. 고용보험 피보험단위기간 등 급여 자격은 미확인입니다. 분할·합산 인정, 경과규정, 첫 이용자 차액 지급 시점은 관할 고용센터에서 확인해 주세요.`;
       notice.hidden = false;
     } else {
       document.querySelector("#comparison-result").hidden = true;
