@@ -167,6 +167,8 @@ function renderMonths(monthly, list, heading, subheading) {
 function calculate(event) {
   event.preventDefault();
   formError.hidden = true;
+  calculatedResult.hidden = true;
+  emptyResult.hidden = false;
   const salary = Number(salaryInput.value.replaceAll(",", ""));
   const selectedScheme = form.querySelector('.scheme-options input[type="radio"]:checked').value;
   const isSixPlusSix = selectedScheme === "sixPlusSix";

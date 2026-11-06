@@ -152,6 +152,18 @@ test("2 million won wage pays 2 million for each complete first-three-month peri
   assert.equal(result.total, 5_935_484);
 });
 
+test("a past leave start in 2025 is calculated independently of the child's birth date", () => {
+  const result = calculateLeaveEstimate({
+    ordinaryWage: 2_000_000,
+    periods: [{ startDate: "2025-08-07", endDate: "2025-09-06" }],
+    asOfDate: "2026-11-05",
+  });
+  assert.equal(result.status, "estimate");
+  assert.equal(result.total, 2_000_000);
+  assert.equal(result.paymentMonths[0].month, 1);
+  assert.equal(result.remaining, 0);
+});
+
 test("prorated benefit can be below the monthly minimum for a partial eligible month", () => {
   const result = calculateLeaveEstimate({
     ordinaryWage: 500_000,
@@ -240,10 +252,11 @@ test("guide displays the calculator's shared rules dynamically and links officia
   ]);
   assert.match(html, /id="benefit-rules-table"/);
   assert.match(html, /src="guide\.js\?v=1"/);
-  assert.match(mainHtml, /app\.js\?v=4/);
+  assert.match(mainHtml, /app\.js\?v=5/);
   assert.match(script, /BENEFIT_RULES\.standard\.bands/);
   assert.match(script, /BENEFIT_RULES\.sixPlusSix\.caps/);
   assert.match(script, /BENEFIT_RULES\.singleParent\.bands/);
+  assert.doesNotMatch(mainHtml, /id="child-birth-date"[^>]*(?:min|max)=/);
   assert.match(html, /제70조/);
   assert.match(html, /제19조제6항/);
   assert.match(html, /7일 이상/);
