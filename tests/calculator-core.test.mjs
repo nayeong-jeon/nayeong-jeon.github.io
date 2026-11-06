@@ -300,6 +300,8 @@ test("guide displays the calculator's shared rules dynamically and links officia
   assert.doesNotMatch(html, /현재 차수 선택|시작일은 달력월별 표시/);
   assert.doesNotMatch(html, /200만~450만 원/);
   assert.match(html, /2026년 11월 5일/);
+  assert.match(html, /2025년 1월 1일 이후 시작한 육아휴직/);
+  assert.match(mainHtml, /2025년 1월 1일 이후 시작한 육아휴직/);
   assert.match(html, /95조의3/);
   assert.match(html, /30일·31일과 관계없이 같은 월액/);
   assert.match(mainHtml, /30일·31일과 관계없이 같은 월액/);
