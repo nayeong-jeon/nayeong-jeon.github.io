@@ -316,6 +316,7 @@ test("privacy notice matches current input fields, storage, network behavior, an
     readFile(new URL("../app.js", import.meta.url), "utf8"),
     readFile(new URL("../styles.css", import.meta.url), "utf8"),
   ]);
+  assert.match(app, /calculator-core\.mjs\?v=2/);
   assert.match(policy, /@dalcong_mommy/);
   assert.match(policy, /instagram\.com\/dalcong_mommy/);
   assert.match(policy, /자녀 생년월일/);

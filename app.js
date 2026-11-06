@@ -1,4 +1,4 @@
-import { calculateLeaveEstimate } from "./calculator-core.mjs";
+import { calculateLeaveEstimate } from "./calculator-core.mjs?v=2";
 
 const form = document.querySelector("#calculator-form");
 const salaryInput = document.querySelector("#salary");
