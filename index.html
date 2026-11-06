@@ -19,7 +19,7 @@
     <meta name="twitter:description" content="월 통상임금으로 육아휴직 급여를 월별 계산하고 신청 안내를 확인하세요.">
 
     <link rel="stylesheet" href="styles.css?v=5">
-    <script type="module" src="app.js?v=10"></script>
+    <script type="module" src="app.js?v=11"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -96,11 +96,11 @@
 
           <fieldset class="field period-group">
             <legend>본인 육아휴직 사용 기간 <span class="required">*</span></legend>
-            <p class="field-help">이미 사용한 기간과 앞으로 사용할 기간을 모두 입력해 주세요. 분할 사용은 기간을 추가해 각각 입력합니다. 날짜는 연도 4자리, 월 2자리, 일 2자리로 입력하세요 (예: 2025-08-07).</p>
+            <p class="field-help">이미 사용한 기간과 앞으로 사용할 기간을 모두 입력해 주세요. 완전한 지급대상 월은 30일·31일과 관계없이 월액이 같고, 마지막 미완성 월만 일할 계산합니다. 종료일은 복직일이 아닌 마지막 휴직일입니다. 날짜 형식은 YYYY-MM-DD입니다.</p>
             <div class="period-list" id="own-periods">
               <div class="period-row">
                 <label><span>시작일</span><input class="period-start date-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" required></label>
-                <label><span>종료일</span><input class="period-end date-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" required></label>
+                <label><span>마지막 휴직일</span><input class="period-end date-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" required></label>
               </div>
             </div>
             <button class="add-period-button" id="add-own-period" type="button">+ 본인 사용 기간 추가</button>
@@ -149,11 +149,11 @@
             </label>
             <fieldset class="field period-group">
               <legend>배우자 육아휴직 사용 기간</legend>
-              <p class="field-help">순차 사용도 가능합니다. 이전·분할 사용 기간을 모두 입력해 주세요. 날짜는 YYYY-MM-DD 형식입니다.</p>
+              <p class="field-help">순차 사용도 가능합니다. 이전·분할 사용 기간을 모두 입력해 주세요. 종료일은 복직일이 아닌 마지막 휴직일입니다.</p>
               <div class="period-list" id="spouse-periods">
                 <div class="period-row">
                   <label><span>시작일</span><input class="period-start date-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD"></label>
-                  <label><span>종료일</span><input class="period-end date-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD"></label>
+                  <label><span>마지막 휴직일</span><input class="period-end date-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD"></label>
                 </div>
               </div>
               <button class="add-period-button" id="add-spouse-period" type="button">+ 배우자 사용 기간 추가</button>
@@ -186,7 +186,7 @@
               <span>세전 · 월 단위 추정</span>
             </div>
             <div class="monthly-list" id="monthly-list"></div>
-            <p class="calculation-footnote">하한 70만 원은 완전한 지급대상 월 기준입니다. 월 미만 기간은 해당 월액(하한 적용액 포함)을 지급대상 일수에 따라 일할 계산하므로 실제 부분 월 지급액은 70만 원보다 적을 수 있습니다. 최종 지급액은 관할 고용센터가 결정합니다.</p>
+            <p class="calculation-footnote">완전한 지급대상 월은 30일·31일과 관계없이 같은 월액으로 계산하고 마지막 미완성 월만 일할 계산합니다. 하한 70만 원은 완전한 지급대상 월 기준이므로 부분 월액은 70만 원보다 적을 수 있습니다. 최종 지급액은 관할 고용센터가 결정합니다.</p>
           </div>
         </aside>
       </section>

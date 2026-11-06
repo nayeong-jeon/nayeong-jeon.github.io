@@ -157,6 +157,24 @@ test("2 million won wage pays 2 million for each complete first-three-month peri
   assert.equal(result.total, 5_935_484);
 });
 
+test("30-day and 31-day complete benefit months have the same fixed amount; only the final partial month is prorated", () => {
+  const result = calculateLeaveEstimate({
+    ordinaryWage: 2_000_000,
+    periods: [{ startDate: "2026-08-10", endDate: "2027-02-01" }],
+  });
+  assert.deepEqual(result.paymentMonths.map(({ amount, complete, eligibleDays, periodDays }) => ({
+    amount, complete, eligibleDays, periodDays,
+  })), [
+    { amount: 2_000_000, complete: true, eligibleDays: 31, periodDays: 31 },
+    { amount: 2_000_000, complete: true, eligibleDays: 30, periodDays: 30 },
+    { amount: 2_000_000, complete: true, eligibleDays: 31, periodDays: 31 },
+    { amount: 2_000_000, complete: true, eligibleDays: 30, periodDays: 30 },
+    { amount: 2_000_000, complete: true, eligibleDays: 31, periodDays: 31 },
+    { amount: 1_483_871, complete: false, eligibleDays: 23, periodDays: 31 },
+  ]);
+  assert.equal(result.total, 11_483_871);
+});
+
 test("a past leave start in 2025 is calculated independently of the child's birth date", () => {
   const result = calculateLeaveEstimate({
     ordinaryWage: 2_000_000,
@@ -258,13 +276,13 @@ test("guide displays the calculator's shared rules dynamically and links officia
   const appScript = await readFile(new URL("../app.js", import.meta.url), "utf8");
   assert.match(html, /id="benefit-rules-table"/);
   assert.match(html, /src="guide\.js\?v=1"/);
-  assert.match(mainHtml, /app\.js\?v=10/);
+  assert.match(mainHtml, /app\.js\?v=11/);
   assert.match(script, /BENEFIT_RULES\.standard\.bands/);
   assert.match(script, /BENEFIT_RULES\.sixPlusSix\.caps/);
   assert.match(script, /BENEFIT_RULES\.singleParent\.bands/);
   assert.match(mainHtml, /id="child-birth-date" class="date-input" type="text" inputmode="numeric"/);
   assert.equal([...mainHtml.matchAll(/class="(?:period-start|period-end) date-input" type="text"/g)].length, 4);
-  assert.match(mainHtml, /연도 4자리, 월 2자리, 일 2자리/);
+  assert.match(mainHtml, /날짜 형식은 YYYY-MM-DD/);
   assert.equal([...mainHtml.matchAll(/type="radio" name="scheme"/g)].length, 3);
   assert.match(mainHtml, /배우자 월 통상임금 <span class="required">\*<\/span>/);
   assert.match(appScript, /spouseSalaryInput\.required = isSixPlusSix/);
@@ -283,6 +301,9 @@ test("guide displays the calculator's shared rules dynamically and links officia
   assert.doesNotMatch(html, /200만~450만 원/);
   assert.match(html, /2026년 11월 5일/);
   assert.match(html, /95조의3/);
+  assert.match(html, /30일·31일과 관계없이 같은 월액/);
+  assert.match(mainHtml, /30일·31일과 관계없이 같은 월액/);
+  assert.match(appScript, /standard\.paymentMonths/);
 
   class Element {
     children = [];

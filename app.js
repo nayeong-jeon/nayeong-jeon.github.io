@@ -61,7 +61,7 @@ document.querySelectorAll(".date-input").forEach(formatDateInput);
 function addPeriod(container) {
   const row = document.createElement("div");
   row.className = "period-row";
-  for (const [label, className] of [["시작일", "period-start"], ["종료일", "period-end"]]) {
+  for (const [label, className] of [["시작일", "period-start"], ["마지막 휴직일", "period-end"]]) {
     const field = document.createElement("label");
     const caption = document.createElement("span");
     const input = document.createElement("input");
@@ -161,10 +161,10 @@ function renderComparison(container, own, spouse) {
     subheading.textContent = `${label} 월별 일반 기준 / 6+6 가정액`;
     const monthlyList = document.createElement("div");
     monthlyList.className = "comparison-monthly-list";
-    estimate.standard.months.forEach((month, index) => {
-      const specialMonth = estimate.hypothetical.months[index];
+    estimate.standard.paymentMonths.forEach((month, index) => {
+      const specialMonth = estimate.hypothetical.paymentMonths[index];
       const row = document.createElement("p");
-      row.textContent = `${month.calendarMonth} · ${month.legalMonths.map((number) => `${number}개월 차`).join(", ")}: ${numberFormat.format(month.amount)}원 / ${numberFormat.format(specialMonth?.amount ?? 0)}원`;
+      row.textContent = `${month.month}개월 차 · 달력월 ${month.calendarMonths.join(", ")}: ${numberFormat.format(month.amount)}원 / ${numberFormat.format(specialMonth?.amount ?? 0)}원`;
       monthlyList.append(row);
     });
     container.append(subheading, monthlyList);
@@ -178,7 +178,7 @@ function renderComparison(container, own, spouse) {
 
 function renderMonths(monthly, list, heading, subheading) {
   heading.textContent = "법정 지급대상 월별 계산";
-  subheading.textContent = "달력월별 합계가 아닌 휴직 시작일 기준 월 차수";
+  subheading.textContent = "완전한 월액은 30·31일과 무관 · 마지막 부분 월만 일할 계산";
   list.replaceChildren();
   for (const month of monthly) {
     const row = document.createElement("div");
